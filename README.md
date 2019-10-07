@@ -1,114 +1,77 @@
 # Ames Housing Pricing Model
 
-## Executive Summary
+## Introduction
+
+The objective of this project is to create a regression model based on the Ames Housing Dataset.
+
+The Ames Housing Dataset is comprised of two csv files: a training set with features and  sale prices, and a test set with just the features. The prediction of the prices pertaining to the test dataset are the subject of the Kaggle competition. The RMSE is the metric chosen to evaluate the model's strength.  
+
+Several versions of the model have been submitted to the Kaggle competion. the best scoring model will be the main subject of analysis in this technical report. However, unsuccessful attempts to improve the model will be described, when relevant, as they tried to address a particular Data science issue.
+
+## The Data Science problem and process
+
+The objective of this exercise is to put the data in a clean, interpretable, and "manipulatable" format and build a pricing model that would help estimate home prices based on selected features.
+The model is designed to be a useful tool for a number of stakeholders, including city government, real estate agents and home buyers and sellers.
+
+## Scope of the Project
+
+**The outline below cover the scope of the steps taken in this modeling exercise:**
+  - a high-level exploration of the data, using `summary statistics`
+  - identification of missing data, using the `.info` function
+  - exploring options to impute data using `value_counts` and the information provided in the `data dictionary`
+  - study of `correlations`, using correlation matrix and `Heatmaps`
+  - selection of features, based on a correlation threshold, and when appropriate dropping features based on `multicollinearity`
+  - dummying categorical variables, using pandas built-in function
+  - `feature engineering`, using `PolynomialFeatures`
 
 
-The objective of this project is to create a regression model based on the Ames Housing Dataset. The model will predict the  prices of unseen sale transactions. 
+## Data cleaning
 
-The Ames Housing Dataset has about 30 different features relating to houses.
+**Identification of missing or inconsistent values**
+The training dataframe has almost 80 features and about 2500 records of sale transactions. The information shows a number of missing values. We know at this point that further investigation is needed to make a decision about the missing data.
+A preliminary statistical analysis shows no obvious discrepancy or typos in the numerical data, such as negative prices, areas, or number of rooms, etc. The `.describe()` with a focus on `Min` and `Max` was used as the main tool for this.  
 
-Several versions of the model have been submitted to the Kaggle competion. the best scoring model will be the main subject of analysis in this technical report. However, unsuccessful attempts to improve the model will be described, when relevant, as they tried to address a data science problem. 
+**2 main tools have been used to make educated guesses about the missing data:**
+1. _the data dictionary_: it allowed to explore the different options that a value can take.
+2. _the value_counts()_ function: allowed to explore the distribution of the values.
 
-### Scope of the project:
+**Data imputation and creation of function**
+In some cases a decision was taken to mark the missing values as NA (for none applicable) or None, when such an option is provided for in the data dictionary, but not used as an entry option. In other cases the distribution of the existing values was relied upon to assign a value to the missing data. The imputation varied between, means or modes for numerical continuous data, and the middle, or the most used option for categorical and discrete values. The logic here is that if a mistake in judgement takes places, the worst that could happen would just tilt the values more toward the mean values. Finally, functions were defined to reproduce the above transformations to similar cases within the training set as well as the test data.
 
-#### The scope of the valuation exercise is as follows:
-  - highlevel exploration of the data, mainly using descriptive analysis and summary statistics
-  - identification of missing data, through
-  - exploring options to impute data through value_counts and data dictionary
-  - study of correlations, through heatmaps and correlation table
-  - selection of features
-  - dummying the categorical variables
-  - feature engeneering through use of polynomials
-  - boost performance by dropping multicullinear variables
-  
-### the Data Science problem: 
-  - put the data in an interpretable format which could be used to build a pricing model that would help estimate home prices based on selected features
-  
-### The Data Science Process
+### Exploratory visualization: heatmaps, correlation and multi-collinear matrices
+As a first step to understanding the data a correlation matrix, coupled with a heatmap of correlations, has been drawn.
+It was obvious that only a dozen of features had a relatively strong correlation (threshold >=50%) with the `saleprices`. However, it was decided that for the first model all features will be used. Later, based on the model evaluation, a more rigorous approach to feature selection will be taken. This is known as the backward approach to feature selection.
+Along this process, all categorical features have been `dummified` to allow their modeling. At this stage, the `dataframe` was over 300 feature large.
 
-The outline below does not necessarily cover every single thing that you will want to do in your project. You may choose to do some things in a slightly different order. Many students choose to work in a single notebook for this project. Others choose to separate sections out into separate notebooks. Check with your local instructor for their preference and further suggestions.
+### Model choice
+When plotted against continuous features, `saleprices` rather approximated a linear distribution, thus the linear regression model was chosen as the base model. Later, the choice was confirmed given the quasi-normal distribution of the residuals.
 
-### the dataset
-the dataset is comprised of two csv file, a training set with features and prices, and a test set with just the features. the prices were meant to be unseen. the prices pertaining to the test dataset are the subject of the Kaggle competition predictions. 
+#### train-test split, scaling, and cross-validation
+The data was split between train and test data. The purpose is to fit the selected models (linear, lasso, and ridge) on the train data and cross-validate their predictive strength on the split test data, as a precursor to evaluating the model with actual test/unseen data. This validation provides the opportunity to choose the best among the predictive models or reevaluate the features selection and interactions. Given the variety of the order of magnitude of the features, a `scaling` exercise was needed.
 
-#### Exploratory data analysis
-##### Identification of missing values or inconsistent data
-1. During basic EDA, you identify many missing values in a column/feature.
+#### Model evaluation and iteration
 
-##### Data descriptive analysis
-##### review of the data dictionary
-2. You consult the data dictionary and use domain knowledge to decide _what_ is meant by this missing feature.
+The first model, with the full load of features, performed extremely poorly with the linear regression, but as expected relatively strongly with lasso and to a lesser extent with ridge. This did not make it any good, given that the resulting RMSE was too big, as measured by the low ranking this first model received in the Kaggle competition.
 
+At this stage, the correlation matrix was looked at more closely. Only 13 features were selected as offering a relatively strong correlation with the `saleprices`. the other features, on their own, presented no predictive information, only noise, and as such impacted negatively the quality of the model.
+An additional iteration was made based on the multicollinearity between certain variables, which resulted in, further, dropping four features. These features were strongly correlated to  other features, which were the once, actually, correlated to `saleprices`.
+As a final boost to the model, PolynomialFeatures was used to play the interactions between the most important features. This iterative process was clearly in the right direction as the rank of the model moved from 87, to 65, to 47, to 41.
 
+#### Model (re)visualization
 
-#### Data cleaning
-3. You impute a reasonable value for the missing value.
-- Determine _what_ missing values mean.
-
-  - use of data dictionary
-  - use of value_counts()  - Identify outliers.
-  - use of functions to reproduce the transformations applied to the training set on the test set
-  - Figuring out programmatically concise and repeatable ways to clean and explore your data will save you a lot of time.
-
-#### Exploratory visualization: heatmaps, correlation and colinear matrices
-4. You plot the distribution of your feature.
-    - - Which features appear to add the most value to a home?
-to question correlation and relationship across predictive variables
-    - include plots
-
-  
-### Target audience:
-  - The model is designed to be useful tool for a number of stakeholders, including city government, realestate agents and home buyers alike
-
-### Modeling process
-
-Given the continuous nature of the prediction, the distribution sample data and it's residuals, the linear regression model would be the best alternative. 
-
-Among the different alternatives for testing the model, the RMSE is the one that will be used to evaluate the model's strength. 
-
-#### Refining models over time
-5. You realize what you imputed has negatively impacted your data quality.
-6. You cycle back, re-load your clean data, re-think your approach, and find a better solution.
-
-#### Use of train-test split
-#### use of scaling 
-#### cross-validation
-*** see discription in the course ***
-
-
-### Model evaluation:
-    - - Look at how accurate your predictions are.
-consider your evaluation metrics
-    - consider your baseline score
-    - Does the student test and evaluate a variety of models to identify a production algorithm (**AT MINIMUM:** linear regression, lasso, and ridge)?
-  - featur selectio
-    - how can your model be used for inference? ** aply that table with p values and confidence intervals
-    - Is there a pattern to your errors? Consider reworking your model to address this.
-
-    - a word about outliers: the model shows a clear increase in residual variability at the top spectrum of prices, indicating that the model, in its current version does not cater for the specificities of the high-end homes. This suggests that some interactions with chosen features could have helped highlight a greater impact on the modeling of luxury homes. It could be also that some features, that were ignored alltogether in the general model, would have had an impact on the modeling of luxury home prices. Although the model catered well to the mid-range prices, it did poorly when estimating high priced homes. this suggests that a different linear regression could be explored for those homes. 
-    - manually drop colinear features
-    - my production model
+The production model is not perfect. A visualization of the `predictions`(y_hat) plotted against the actual `saleprices`(y) show outliers, suggesting a widening gap in residuals for high-priced properties/luxury homes. It indicates, that the model, in its current version, does not account well for the specificities of these properties. This further suggests that non-selected features, or some interactions between these non-selected features and the selected features could have helped highlight an important impact on the `saleprices`. Alternatively, a more curved model, one that takes an exponential form toward the end of the price spectrum could be considered, failing which, a separate linear regression model could be explored for that category of homes.
 
 ### Final recommendations and future steps
-  - feature combination
-  - interaction terms
-  - manually drop collinear features?
-  - What are things that homeowners could improve in their homes to increase the value?
-this model will generalize to other cities
-  - the model is good for most houses in the mid-range with ordinary features
-  - homebuyers, realestate agents and city governments can use it as indication to pricing, impact of infrastructure, and impact of added features that wold have a higher than proportionate impact, given the cost
-  - In these cases, we would like to give the network more expressive power to learn a probability-like number for each possible label value. This can help in both making the problem easier for the network to model. When a one hot encoding is used for the output variable, it may offer a more nuanced set of predictions than a single label.
-  - Use elastic net
-  - Tune hyperparameters.
+This report highlighted the steps undertaken to rebuild missing values and format the data in a way that is ready for visualization, correlation analysis, and predictive modeling. The report also describes the steps undertaken to strengthen the model, from dummy variables, to dropping low correlated features, to reducing multicollinearity, and finally to interacting the selected variables using PolynomialFeatures. This exercise, however, stops short at narrowly predicting the prices of high-end properties.
+An extension of this work would be to:
+  - test the impact of **interaction terms** with the previously selected features with other features not yet-selected. The result of this exercise could well generalize to the prediction of home values in other cities. it could also serve as reference to homeowners and realtors to know the impact of certain features, including home improvements, on the prices of homes
+  - explore **grid searching** capabilities that would **tune the hyperparameters** (testing 2nd and 3rd degrees, etc.) of the regularization models used, to include high-end homes by allowing a more exponential allure to the linear regression towards high prices, and therefore generalize the model to the whole spectrum of residential properties.
 
-  
-#### grid searching for hyperparameters
-the next step would be to fine tune the hyperparameters in the regularization models used. You would expect that any setting in these regularization would take care of the noise surrounding the price data, but it appeared that it is not the case. An example in case is the use of all features, including categorical, to make the best predictions of prices. The assumption was that, although some of the feature were less important than others, the lasso model would recognize them and actively limit or cancel their effect. It was not what was experienced. The lasso model, using all features, scored very low as a predictor. You may argue that it was to be expected that there is something wrong with setting of the data, given that the linear regression model indicated a problem with the model, at a negative R2. 
 
 ## Attachments:
-please find attached to 
-- this executive summary: 
-- Jupyter notebook
-- kaggle submission snapshot
-- submitted csv file along with the original dataset
+please find attached to
+- this executive summary:
+- a Jupyter notebook with the model code
+- kaggle submission snapshot and score
+- the predictions csv file along with the original dataset
 - Presentation slides
