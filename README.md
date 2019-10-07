@@ -10,12 +10,12 @@ Several versions of the model have been submitted to the Kaggle competion. the b
 
 ## The Data Science problem and process
 
-The objective of this exercise is to put the data in a clean, interpretable, and "manipulatable" format and build a pricing model that would help estimate home prices based on selected features.
+The objective of this exercise is to put the data in a clean, interpretable, and malliable format and build a pricing model that would help estimate home prices based on selected features.
 The model is designed to be a useful tool for a number of stakeholders, including city government, real estate agents and home buyers and sellers.
 
 ## Scope of the Project
 
-**The outline below cover the scope of the steps taken in this modeling exercise:**
+**The outline below covers the scope of the steps taken in this modeling exercise:**
   - a high-level exploration of the data, using `summary statistics`
   - identification of missing data, using the `.info` function
   - exploring options to impute data using `value_counts` and the information provided in the `data dictionary`
@@ -75,3 +75,4 @@ please find attached to
 - kaggle submission snapshot and score
 - the predictions csv file along with the original dataset
 - Presentation slides
+    
