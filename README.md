@@ -1,4 +1,4 @@
-# Project 2 - Ames Housing Pricing Model
+# Ames Housing Pricing Model
 
 ## Executive Summary
 
